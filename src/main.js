@@ -1,8 +1,45 @@
 const { app, BrowserWindow, dialog, ipcMain } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const fs = require('fs/promises');
 const path = require('path');
 
 let mainWindow;
+
+function setupAutoUpdater() {
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.allowPrerelease = false;
+
+  autoUpdater.on('update-downloaded', async (info) => {
+    if (!mainWindow) return;
+
+    const { response } = await dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      buttons: ['Jetzt neu starten', 'Beim Beenden installieren'],
+      defaultId: 0,
+      cancelId: 1,
+      title: 'Update bereit',
+      message: `Version ${info.version} wurde heruntergeladen.`,
+      detail: 'Netzwerkplan kann jetzt neu starten und die neue Version installieren.'
+    });
+
+    if (response === 0) {
+      autoUpdater.quitAndInstall();
+    }
+  });
+
+  autoUpdater.on('error', (error) => {
+    console.warn('Update check failed:', error);
+  });
+}
+
+function checkForUpdates() {
+  if (!app.isPackaged) return;
+
+  autoUpdater.checkForUpdates().catch((error) => {
+    console.warn('Update check failed:', error);
+  });
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -23,10 +60,15 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  setupAutoUpdater();
   createWindow();
+  checkForUpdates();
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+      checkForUpdates();
+    }
   });
 });
 

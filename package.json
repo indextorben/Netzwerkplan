@@ -17,6 +17,10 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/indextorben/Netzwerkplan.git"
+  },
   "devDependencies": {
     "electron": "^42.1.0",
     "electron-builder": "^26.8.1"
@@ -31,9 +35,20 @@
     "directories": {
       "output": "release"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "indextorben",
+        "repo": "Netzwerkplan"
+      }
+    ],
     "mac": {
       "category": "public.app-category.productivity",
-      "identity": null
+      "identity": null,
+      "target": [
+        "dmg",
+        "zip"
+      ]
     },
     "win": {
       "target": "nsis"
@@ -45,5 +60,8 @@
       ],
       "category": "Office"
     }
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.3"
   }
 }
