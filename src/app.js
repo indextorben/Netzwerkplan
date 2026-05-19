@@ -49,6 +49,7 @@ const NODE_MIN_WIDTH = 140;
 const NODE_MAX_WIDTH = 520;
 const NODE_TEXT_START = 52;
 const NODE_RIGHT_PADDING = 22;
+const AUTOSAVE_KEY = 'netzwerkplan:lastProject';
 
 function nodeMeta(node) {
   return node.ip || node.role || deviceByType(node.type).label;
@@ -96,6 +97,37 @@ function snapshot() {
   };
 }
 
+function autosaveSnapshot() {
+  return {
+    app: 'Netzwerkplan',
+    version: 1,
+    projectName: state.projectName,
+    filePath: state.filePath,
+    connectionType: state.connectionType,
+    pan: state.pan,
+    zoom: state.zoom,
+    nodes: state.nodes,
+    links: state.links
+  };
+}
+
+function saveLastProject() {
+  localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(autosaveSnapshot()));
+}
+
+function loadLastProject() {
+  const raw = localStorage.getItem(AUTOSAVE_KEY);
+  if (!raw) return null;
+
+  try {
+    const project = JSON.parse(raw);
+    if (!Array.isArray(project.nodes) || !Array.isArray(project.links)) return null;
+    return project;
+  } catch (_error) {
+    return null;
+  }
+}
+
 function pushHistory() {
   state.history.push(snapshot());
   if (state.history.length > 80) state.history.shift();
@@ -104,6 +136,10 @@ function pushHistory() {
 
 function restore(data) {
   state.projectName = data.projectName || 'Neuer Netzwerkplan';
+  state.filePath = data.filePath || state.filePath || '';
+  state.connectionType = normalizeLinkType(data.connectionType || state.connectionType);
+  state.pan = data.pan || state.pan;
+  state.zoom = data.zoom || state.zoom;
   state.nodes = data.nodes || [];
   state.links = data.links || [];
   state.selected = null;
@@ -320,6 +356,7 @@ function render() {
   renderInspector();
   renderMode();
   updateTransform();
+  saveLastProject();
 }
 
 function beginNodePointer(event, id) {
@@ -399,14 +436,33 @@ function endPointer(event) {
 function mutateSelected(field, value) {
   if (!state.selected) return;
   pushHistory();
+  updateSelectedField(field, value);
+  render();
+}
+
+function updateSelectedField(field, value) {
+  if (!state.selected) return;
   if (state.selected.kind === 'node') {
     const node = nodeById(state.selected.id);
     if (node) node[field] = value;
   } else {
     const link = linkById(state.selected.id);
-    if (link) link[field] = value;
+    if (link) link[field] = field === 'type' ? normalizeLinkType(value) : value;
   }
-  render();
+}
+
+function syncInspectorDraft() {
+  if (state.selected?.kind === 'node') {
+    updateSelectedField('name', byId('nodeName').value);
+    updateSelectedField('ip', byId('nodeIp').value);
+    updateSelectedField('role', byId('nodeRole').value);
+    updateSelectedField('note', byId('nodeNote').value);
+  }
+
+  if (state.selected?.kind === 'link') {
+    updateSelectedField('label', byId('linkLabel').value);
+    updateSelectedField('type', byId('linkType').value);
+  }
 }
 
 function undo() {
@@ -576,6 +632,7 @@ function bindEvents() {
   byId('connectionType').addEventListener('change', (event) => {
     state.connectionType = event.target.value;
     setStatus(`${linkTypeById(state.connectionType).status} ausgewählt`);
+    saveLastProject();
   });
   byId('deleteSelection').addEventListener('click', removeSelection);
   byId('undo').addEventListener('click', undo);
@@ -613,6 +670,10 @@ function bindEvents() {
     state.projectName = event.target.value || 'Neuer Netzwerkplan';
     renderInspector();
   });
+  byId('projectName').addEventListener('input', (event) => {
+    state.projectName = event.target.value || 'Neuer Netzwerkplan';
+    saveLastProject();
+  });
 
   [
     ['nodeName', 'name'],
@@ -623,6 +684,10 @@ function bindEvents() {
     ['linkType', 'type']
   ].forEach(([id, field]) => {
     byId(id).addEventListener('change', (event) => mutateSelected(field, event.target.value));
+    byId(id).addEventListener('input', (event) => {
+      updateSelectedField(field, event.target.value);
+      saveLastProject();
+    });
   });
 
   byId('newProject').addEventListener('click', () => {
@@ -633,6 +698,7 @@ function bindEvents() {
     state.links = [];
     state.selected = null;
     render();
+    setStatus('Neuer Plan erstellt');
   });
 
   byId('saveProject').addEventListener('click', async () => {
@@ -651,7 +717,7 @@ function bindEvents() {
     const result = await window.netzwerkplan.openProject();
     if (!result.canceled) {
       state.filePath = result.filePath;
-      restore(result.project);
+      restore({ ...result.project, filePath: result.filePath });
       setStatus('Projekt geladen');
     }
   });
@@ -676,6 +742,10 @@ function bindEvents() {
       render();
     }
   });
+  window.addEventListener('beforeunload', () => {
+    syncInspectorDraft();
+    saveLastProject();
+  });
 }
 
 function seedProject() {
@@ -697,6 +767,12 @@ function seedProject() {
 renderPalette();
 renderConnectionTypes();
 bindEvents();
-seedProject();
-render();
-requestAnimationFrame(fitView);
+const lastProject = loadLastProject();
+if (lastProject) {
+  restore(lastProject);
+  setStatus('Letzten Stand geladen');
+} else {
+  seedProject();
+  render();
+  requestAnimationFrame(fitView);
+}
