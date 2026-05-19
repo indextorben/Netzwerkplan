@@ -70,7 +70,15 @@
             <button class="icon-button" id="redo" title="Wiederholen">↷</button>
             <button class="icon-button" id="checkUpdates" title="Updates prüfen">↻</button>
           </div>
-          <div class="status" id="status">Bereit</div>
+          <div class="status-stack">
+            <div class="update-progress hidden" id="updateProgress">
+              <span id="updateProgressLabel">Update wird geladen</span>
+              <div class="update-progress-track">
+                <div class="update-progress-bar" id="updateProgressBar"></div>
+              </div>
+            </div>
+            <div class="status" id="status">Bereit</div>
+          </div>
         </header>
 
         <div class="canvas-wrap" id="canvasWrap">

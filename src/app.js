@@ -151,6 +151,43 @@ function setStatus(message) {
   byId('status').textContent = message;
 }
 
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '? MB';
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function setUpdateProgress(payload) {
+  const progress = byId('updateProgress');
+  const label = byId('updateProgressLabel');
+  const bar = byId('updateProgressBar');
+
+  if (payload.type === 'not-available' || payload.type === 'error') {
+    progress.classList.add('hidden');
+    bar.style.width = '0%';
+    return;
+  }
+
+  progress.classList.remove('hidden');
+
+  if (payload.type === 'available') {
+    label.textContent = `Update ${payload.version} gefunden (${formatBytes(payload.totalBytes)})`;
+    bar.style.width = '0%';
+    return;
+  }
+
+  if (payload.type === 'progress') {
+    const percent = Math.max(0, Math.min(100, payload.percent || 0));
+    label.textContent = `${Math.round(percent)}% · ${formatBytes(payload.transferredBytes)} / ${formatBytes(payload.totalBytes)}`;
+    bar.style.width = `${percent}%`;
+    return;
+  }
+
+  if (payload.type === 'downloaded') {
+    label.textContent = `Update ${payload.version} bereit (${formatBytes(payload.totalBytes)})`;
+    bar.style.width = '100%';
+  }
+}
+
 function screenToWorld(event) {
   const rect = svg.getBoundingClientRect();
   return {
@@ -756,6 +793,13 @@ function bindEvents() {
   window.addEventListener('beforeunload', () => {
     syncInspectorDraft();
     saveLastProject();
+  });
+  window.netzwerkplan.onUpdateMessage((payload) => {
+    setUpdateProgress(payload);
+    if (payload.type === 'progress') setStatus('Update wird heruntergeladen');
+    if (payload.type === 'downloaded') setStatus('Update heruntergeladen');
+    if (payload.type === 'not-available') setStatus('Netzwerkplan ist aktuell');
+    if (payload.type === 'error') setStatus('Update-Prüfung fehlgeschlagen');
   });
 }
 

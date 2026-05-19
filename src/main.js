@@ -8,6 +8,17 @@ let manualUpdateCheck = false;
 let updateDialogOpen = false;
 let updateInstallRequested = false;
 let downloadedUpdateVersion = null;
+let lastUpdateProgress = null;
+
+function formatMegabytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return 'unbekannt';
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function sendUpdateMessage(type, payload = {}) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.webContents.send('update:message', { type, ...payload });
+}
 
 function setupAutoUpdater() {
   autoUpdater.autoDownload = true;
@@ -15,6 +26,10 @@ function setupAutoUpdater() {
   autoUpdater.allowPrerelease = false;
 
   autoUpdater.on('update-available', (info) => {
+    sendUpdateMessage('available', {
+      version: info.version,
+      totalBytes: info.files?.[0]?.size || 0
+    });
     if (!manualUpdateCheck || !mainWindow) return;
 
     dialog.showMessageBox(mainWindow, {
@@ -27,6 +42,7 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('update-not-available', () => {
+    sendUpdateMessage('not-available');
     if (!manualUpdateCheck || !mainWindow) return;
     manualUpdateCheck = false;
 
@@ -39,11 +55,27 @@ function setupAutoUpdater() {
     });
   });
 
+  autoUpdater.on('download-progress', (progress) => {
+    lastUpdateProgress = {
+      percent: progress.percent || 0,
+      transferredBytes: progress.transferred || 0,
+      totalBytes: progress.total || 0,
+      bytesPerSecond: progress.bytesPerSecond || 0
+    };
+    sendUpdateMessage('progress', lastUpdateProgress);
+  });
+
   autoUpdater.on('update-downloaded', async (info) => {
     if (!mainWindow || updateDialogOpen || updateInstallRequested || downloadedUpdateVersion === info.version) return;
     manualUpdateCheck = false;
     updateDialogOpen = true;
     downloadedUpdateVersion = info.version;
+    sendUpdateMessage('downloaded', {
+      version: info.version,
+      totalBytes: lastUpdateProgress?.totalBytes || info.files?.[0]?.size || 0
+    });
+
+    const sizeLabel = formatMegabytes(lastUpdateProgress?.totalBytes || info.files?.[0]?.size || 0);
 
     const { response } = await dialog.showMessageBox(mainWindow, {
       type: 'info',
@@ -52,7 +84,7 @@ function setupAutoUpdater() {
       cancelId: 1,
       title: 'Update bereit',
       message: `Version ${info.version} wurde heruntergeladen.`,
-      detail: 'Netzwerkplan kann jetzt neu starten und die neue Version installieren.'
+      detail: `Groesse: ${sizeLabel}\nNetzwerkplan kann jetzt neu starten und die neue Version installieren.`
     });
     updateDialogOpen = false;
 
@@ -66,6 +98,7 @@ function setupAutoUpdater() {
 
   autoUpdater.on('error', (error) => {
     console.warn('Update check failed:', error);
+    sendUpdateMessage('error', { message: error.message || String(error) });
     if (!manualUpdateCheck || !mainWindow) return;
     manualUpdateCheck = false;
 
