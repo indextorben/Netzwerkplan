@@ -5,6 +5,9 @@ const path = require('path');
 
 let mainWindow;
 let manualUpdateCheck = false;
+let updateDialogOpen = false;
+let updateInstallRequested = false;
+let downloadedUpdateVersion = null;
 
 function setupAutoUpdater() {
   autoUpdater.autoDownload = true;
@@ -37,8 +40,10 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('update-downloaded', async (info) => {
-    if (!mainWindow) return;
+    if (!mainWindow || updateDialogOpen || updateInstallRequested || downloadedUpdateVersion === info.version) return;
     manualUpdateCheck = false;
+    updateDialogOpen = true;
+    downloadedUpdateVersion = info.version;
 
     const { response } = await dialog.showMessageBox(mainWindow, {
       type: 'info',
@@ -49,9 +54,13 @@ function setupAutoUpdater() {
       message: `Version ${info.version} wurde heruntergeladen.`,
       detail: 'Netzwerkplan kann jetzt neu starten und die neue Version installieren.'
     });
+    updateDialogOpen = false;
 
     if (response === 0) {
-      autoUpdater.quitAndInstall();
+      updateInstallRequested = true;
+      setImmediate(() => {
+        autoUpdater.quitAndInstall(false, true);
+      });
     }
   });
 
@@ -72,6 +81,7 @@ function setupAutoUpdater() {
 
 function checkForUpdates() {
   if (!app.isPackaged) return;
+  if (updateDialogOpen || updateInstallRequested || downloadedUpdateVersion) return;
 
   autoUpdater.checkForUpdates().catch((error) => {
     console.warn('Update check failed:', error);
