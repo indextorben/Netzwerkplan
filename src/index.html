@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netzwerkplan</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="left-rail">
+        <div class="brand">
+          <div class="brand-mark">NP</div>
+          <div>
+            <h1>Netzwerkplan</h1>
+            <p id="fileName">Unbenannt</p>
+          </div>
+        </div>
+
+        <section class="tool-section">
+          <h2>Werkzeuge</h2>
+          <div class="tool-grid" id="toolGrid"></div>
+        </section>
+
+        <section class="tool-section compact">
+          <h2>Aktionen</h2>
+          <button class="wide-button" id="newProject">Neu</button>
+          <button class="wide-button" id="openProject">Öffnen</button>
+          <button class="wide-button" id="saveProject">Speichern</button>
+          <button class="wide-button" id="exportSvg">SVG</button>
+          <button class="wide-button" id="exportPng">PNG</button>
+        </section>
+
+        <section class="tool-section compact">
+          <h2>Ansicht</h2>
+          <div class="segmented">
+            <button id="zoomOut">-</button>
+            <span id="zoomLabel">100%</span>
+            <button id="zoomIn">+</button>
+          </div>
+          <button class="wide-button subtle" id="fitView">Einpassen</button>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div class="mode-strip">
+            <button class="icon-button active" id="selectMode" title="Auswählen">↖</button>
+            <button class="icon-button" id="connectMode" title="Verbinden">⌁</button>
+            <button class="icon-button" id="deleteSelection" title="Löschen">⌫</button>
+            <button class="icon-button" id="undo" title="Rückgängig">↶</button>
+            <button class="icon-button" id="redo" title="Wiederholen">↷</button>
+          </div>
+          <div class="status" id="status">Bereit</div>
+        </header>
+
+        <div class="canvas-wrap" id="canvasWrap">
+          <svg id="diagram" aria-label="Netzwerkplan Zeichenfläche">
+            <defs>
+              <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+                <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#2c3338" stroke-width="1"/>
+              </pattern>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#7fd8b4"/>
+              </marker>
+            </defs>
+            <rect class="grid-bg" x="-6000" y="-6000" width="12000" height="12000" fill="url(#grid)"></rect>
+            <g id="viewport">
+              <g id="links"></g>
+              <g id="nodes"></g>
+            </g>
+          </svg>
+        </div>
+      </main>
+
+      <aside class="inspector">
+        <section class="panel">
+          <h2>Eigenschaften</h2>
+          <div id="emptyInspector" class="empty-state">Wähle ein Gerät oder eine Verbindung aus.</div>
+          <form id="nodeInspector" class="inspector-form hidden">
+            <label>Name<input id="nodeName" type="text"></label>
+            <label>IP-Adresse<input id="nodeIp" type="text" placeholder="192.168.1.1"></label>
+            <label>Rolle<input id="nodeRole" type="text" placeholder="Core, Access, DMZ"></label>
+            <label>Notiz<textarea id="nodeNote" rows="4"></textarea></label>
+          </form>
+          <form id="linkInspector" class="inspector-form hidden">
+            <label>Label<input id="linkLabel" type="text" placeholder="VLAN 10 / 1 Gbit"></label>
+            <label>Typ<select id="linkType">
+              <option value="ethernet">Ethernet</option>
+              <option value="fiber">Glasfaser</option>
+              <option value="wireless">WLAN</option>
+              <option value="vpn">VPN</option>
+            </select></label>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h2>Plan-Info</h2>
+          <div class="metrics">
+            <span><strong id="nodeCount">0</strong> Geräte</span>
+            <span><strong id="linkCount">0</strong> Verbindungen</span>
+          </div>
+          <label class="plan-name">Projektname<input id="projectName" type="text" value="Neuer Netzwerkplan"></label>
+        </section>
+      </aside>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
