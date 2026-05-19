@@ -25,6 +25,91 @@ body {
   font-family: "Avenir Next", "Segoe UI", sans-serif;
 }
 
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 45% 42%, rgba(231, 201, 107, 0.12), transparent 24%),
+    radial-gradient(circle at 56% 58%, rgba(127, 216, 180, 0.14), transparent 28%),
+    rgba(12, 15, 17, 0.96);
+  transition: opacity 420ms ease, visibility 420ms ease;
+}
+
+.loading-screen.hidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-card {
+  display: grid;
+  grid-template-columns: 54px minmax(220px, 300px);
+  gap: 14px;
+  align-items: center;
+  width: min(420px, calc(100vw - 48px));
+  padding: 18px;
+  border: 1px solid #385149;
+  background: linear-gradient(145deg, #182022 0%, #121719 100%);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+}
+
+.loading-mark {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid #5c756b;
+  background: #1f352e;
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.loading-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.loading-copy strong {
+  font-size: 16px;
+}
+
+.loading-copy span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.loading-track {
+  grid-column: 1 / -1;
+  height: 10px;
+  overflow: hidden;
+  border: 1px solid #35433f;
+  background: #0d1113;
+}
+
+.loading-bar {
+  width: 46%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2), #89aef5);
+  animation: loading-slide 1200ms ease-in-out infinite;
+}
+
+@keyframes loading-slide {
+  0% {
+    transform: translateX(-105%);
+  }
+
+  55% {
+    transform: translateX(55%);
+  }
+
+  100% {
+    transform: translateX(225%);
+  }
+}
+
 button,
 input,
 textarea,

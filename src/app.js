@@ -748,6 +748,15 @@ function bindEvents() {
   });
 }
 
+function hideLoadingScreen() {
+  const loadingScreen = byId('loadingScreen');
+  if (!loadingScreen) return;
+
+  window.setTimeout(() => {
+    loadingScreen.classList.add('hidden');
+  }, 360);
+}
+
 function seedProject() {
   state.nodes = [
     { id: 'node-router', type: 'router', name: 'Edge Router', ip: '10.0.0.1', role: 'WAN', note: '', x: 160, y: 120 },
@@ -771,8 +780,12 @@ const lastProject = loadLastProject();
 if (lastProject) {
   restore(lastProject);
   setStatus('Letzten Stand geladen');
+  requestAnimationFrame(hideLoadingScreen);
 } else {
   seedProject();
   render();
-  requestAnimationFrame(fitView);
+  requestAnimationFrame(() => {
+    fitView();
+    hideLoadingScreen();
+  });
 }
