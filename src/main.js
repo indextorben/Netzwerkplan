@@ -93,7 +93,11 @@ function createWindow() {
     }
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  const rendererPath = path.join(app.getAppPath(), 'src', 'index.html');
+  mainWindow.loadFile(rendererPath).catch((error) => {
+    console.error('Failed to load renderer:', error);
+    dialog.showErrorBox('Netzwerkplan konnte nicht gestartet werden', error.message || String(error));
+  });
 }
 
 app.whenReady().then(() => {
