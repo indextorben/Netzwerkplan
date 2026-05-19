@@ -4,14 +4,41 @@ const fs = require('fs/promises');
 const path = require('path');
 
 let mainWindow;
+let manualUpdateCheck = false;
 
 function setupAutoUpdater() {
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.allowPrerelease = false;
 
+  autoUpdater.on('update-available', (info) => {
+    if (!manualUpdateCheck || !mainWindow) return;
+
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      buttons: ['OK'],
+      title: 'Update gefunden',
+      message: `Version ${info.version} ist verfuegbar.`,
+      detail: 'Das Update wird jetzt heruntergeladen.'
+    });
+  });
+
+  autoUpdater.on('update-not-available', () => {
+    if (!manualUpdateCheck || !mainWindow) return;
+    manualUpdateCheck = false;
+
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      buttons: ['OK'],
+      title: 'Keine Updates',
+      message: 'Netzwerkplan ist aktuell.',
+      detail: `Installierte Version: ${app.getVersion()}`
+    });
+  });
+
   autoUpdater.on('update-downloaded', async (info) => {
     if (!mainWindow) return;
+    manualUpdateCheck = false;
 
     const { response } = await dialog.showMessageBox(mainWindow, {
       type: 'info',
@@ -30,6 +57,16 @@ function setupAutoUpdater() {
 
   autoUpdater.on('error', (error) => {
     console.warn('Update check failed:', error);
+    if (!manualUpdateCheck || !mainWindow) return;
+    manualUpdateCheck = false;
+
+    dialog.showMessageBox(mainWindow, {
+      type: 'error',
+      buttons: ['OK'],
+      title: 'Update-Pruefung fehlgeschlagen',
+      message: 'Updates konnten gerade nicht geprueft werden.',
+      detail: error.message || String(error)
+    });
   });
 }
 
@@ -129,4 +166,17 @@ ipcMain.handle('file:exportPng', async (_event, payload) => {
   const data = payload.dataUrl.replace(/^data:image\/png;base64,/, '');
   await fs.writeFile(result.filePath, Buffer.from(data, 'base64'));
   return { canceled: false, filePath: result.filePath };
+});
+
+ipcMain.handle('app:checkForUpdates', async () => {
+  if (!app.isPackaged) {
+    return {
+      status: 'development',
+      message: 'Update-Pruefung ist nur in der installierten App aktiv.'
+    };
+  }
+
+  manualUpdateCheck = true;
+  await autoUpdater.checkForUpdates();
+  return { status: 'checking' };
 });

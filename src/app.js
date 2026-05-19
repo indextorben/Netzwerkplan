@@ -544,6 +544,24 @@ function bindEvents() {
   byId('deleteSelection').addEventListener('click', removeSelection);
   byId('undo').addEventListener('click', undo);
   byId('redo').addEventListener('click', redo);
+  byId('checkUpdates').addEventListener('click', async (event) => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    setStatus('Suche nach Updates...');
+
+    try {
+      const result = await window.netzwerkplan.checkForUpdates();
+      if (result.status === 'development') {
+        setStatus(result.message);
+      } else {
+        setStatus('Update-Prüfung läuft');
+      }
+    } catch (_error) {
+      setStatus('Update-Prüfung fehlgeschlagen');
+    } finally {
+      button.disabled = false;
+    }
+  });
   byId('zoomIn').addEventListener('click', () => {
     state.zoom = Math.min(2.4, state.zoom * 1.15);
     updateTransform();
