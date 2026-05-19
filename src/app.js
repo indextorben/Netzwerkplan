@@ -614,7 +614,6 @@ function bindEvents() {
 
   window.addEventListener('keydown', (event) => {
     const mod = event.metaKey || event.ctrlKey;
-    if (event.key === 'Delete' || event.key === 'Backspace') removeSelection();
     if (mod && event.key.toLowerCase() === 'z' && !event.shiftKey) undo();
     if ((mod && event.key.toLowerCase() === 'y') || (mod && event.shiftKey && event.key.toLowerCase() === 'z')) redo();
     if (event.key === 'Escape') {
