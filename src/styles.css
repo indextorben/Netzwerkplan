@@ -358,45 +358,88 @@ h1 {
   cursor: pointer;
 }
 
+.link-casing {
+  fill: none;
+  stroke: #101315;
+  stroke-linecap: round;
+  stroke-width: 7;
+  opacity: 0.88;
+  pointer-events: none;
+}
+
 .link-line {
   fill: none;
   stroke: #8ca7a0;
+  stroke-linecap: round;
   stroke-width: 3;
+  pointer-events: none;
 }
 
 .link-line.cable {
-  stroke: #8ca7a0;
+  stroke: #c4ccc8;
+  stroke-width: 4;
 }
 
 .link-line.fiber {
   stroke: #e7c96b;
-  stroke-dasharray: 10 5;
+  stroke-width: 3;
+  stroke-dasharray: 2 8;
+}
+
+.link-casing.fiber {
+  stroke: #5b4a1d;
 }
 
 .link-line.wlan {
   stroke: #89aef5;
-  stroke-dasharray: 2 7;
-  stroke-linecap: round;
+  stroke-width: 4;
+  stroke-dasharray: 1 12;
+}
+
+.link-casing.wlan {
+  stroke: #203553;
+  stroke-width: 9;
 }
 
 .link-line.vpn {
   stroke: #d68cc7;
-  stroke-dasharray: 12 4 2 4;
+  stroke-width: 4;
+  stroke-dasharray: 18 5 2 5;
+}
+
+.link-casing.vpn {
+  stroke: #4a2a45;
 }
 
 .link-line.internet {
   stroke: #7fd8b4;
-  stroke-dasharray: 16 5;
+  stroke-width: 3.5;
+  stroke-dasharray: 22 7;
+}
+
+.link-casing.internet {
+  stroke: #21493e;
+  stroke-width: 8;
 }
 
 .link-line.serial {
   stroke: #ff9f7d;
-  stroke-dasharray: 4 4;
+  stroke-width: 3;
+  stroke-dasharray: 5 5;
+}
+
+.link-casing.serial {
+  stroke: #553022;
+}
+
+.link.selected .link-casing {
+  stroke: var(--accent);
+  opacity: 0.42;
+  stroke-width: 10;
 }
 
 .link.selected .link-line {
-  stroke: var(--accent);
-  stroke-width: 4;
+  stroke-width: 4.5;
 }
 
 .link-label {

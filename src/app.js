@@ -263,11 +263,15 @@ function renderLinks() {
     const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     hit.setAttribute('class', 'link-hit');
     hit.setAttribute('d', pathData);
+    const linkType = normalizeLinkType(link.type);
+    const casing = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    casing.setAttribute('class', `link-casing ${linkType}`);
+    casing.setAttribute('d', pathData);
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    line.setAttribute('class', `link-line ${normalizeLinkType(link.type)}`);
+    line.setAttribute('class', `link-line ${linkType}`);
     line.setAttribute('d', pathData);
 
-    group.append(hit, line);
+    group.append(hit, casing, line);
     if (link.label) {
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.setAttribute('class', 'link-label');
@@ -513,14 +517,21 @@ function exportStyles() {
   return `
     .grid-bg { opacity: 0.72; }
     .link-hit { fill: none; stroke: transparent; stroke-width: 18; }
-    .link-line { fill: none; stroke: #8ca7a0; stroke-width: 3; }
-    .link-line.cable { stroke: #8ca7a0; }
-    .link-line.fiber { stroke: #e7c96b; stroke-dasharray: 10 5; }
-    .link-line.wlan { stroke: #89aef5; stroke-dasharray: 2 7; stroke-linecap: round; }
-    .link-line.vpn { stroke: #d68cc7; stroke-dasharray: 12 4 2 4; }
-    .link-line.internet { stroke: #7fd8b4; stroke-dasharray: 16 5; }
-    .link-line.serial { stroke: #ff9f7d; stroke-dasharray: 4 4; }
-    .link.selected .link-line { stroke: #7fd8b4; stroke-width: 4; }
+    .link-casing { fill: none; stroke: #101315; stroke-linecap: round; stroke-width: 7; opacity: 0.88; }
+    .link-line { fill: none; stroke: #8ca7a0; stroke-linecap: round; stroke-width: 3; }
+    .link-line.cable { stroke: #c4ccc8; stroke-width: 4; }
+    .link-line.fiber { stroke: #e7c96b; stroke-width: 3; stroke-dasharray: 2 8; }
+    .link-casing.fiber { stroke: #5b4a1d; }
+    .link-line.wlan { stroke: #89aef5; stroke-width: 4; stroke-dasharray: 1 12; }
+    .link-casing.wlan { stroke: #203553; stroke-width: 9; }
+    .link-line.vpn { stroke: #d68cc7; stroke-width: 4; stroke-dasharray: 18 5 2 5; }
+    .link-casing.vpn { stroke: #4a2a45; }
+    .link-line.internet { stroke: #7fd8b4; stroke-width: 3.5; stroke-dasharray: 22 7; }
+    .link-casing.internet { stroke: #21493e; stroke-width: 8; }
+    .link-line.serial { stroke: #ff9f7d; stroke-width: 3; stroke-dasharray: 5 5; }
+    .link-casing.serial { stroke: #553022; }
+    .link.selected .link-casing { stroke: #7fd8b4; opacity: 0.42; stroke-width: 10; }
+    .link.selected .link-line { stroke-width: 4.5; }
     .link-label {
       paint-order: stroke;
       stroke: #101315;
