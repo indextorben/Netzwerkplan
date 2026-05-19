@@ -23,6 +23,11 @@
         </section>
 
         <section class="tool-section compact">
+          <h2>Verbindung</h2>
+          <label>Art<select id="connectionType"></select></label>
+        </section>
+
+        <section class="tool-section compact">
           <h2>Aktionen</h2>
           <button class="wide-button" id="newProject">Neu</button>
           <button class="wide-button" id="openProject">Öffnen</button>
@@ -86,12 +91,7 @@
           </form>
           <form id="linkInspector" class="inspector-form hidden">
             <label>Label<input id="linkLabel" type="text" placeholder="VLAN 10 / 1 Gbit"></label>
-            <label>Typ<select id="linkType">
-              <option value="ethernet">Ethernet</option>
-              <option value="fiber">Glasfaser</option>
-              <option value="wireless">WLAN</option>
-              <option value="vpn">VPN</option>
-            </select></label>
+            <label>Typ<select id="linkType"></select></label>
           </form>
         </section>
 

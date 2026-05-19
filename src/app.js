@@ -11,6 +11,7 @@ const state = {
   links: [],
   selected: null,
   mode: 'select',
+  connectionType: 'cable',
   pendingLinkNode: null,
   pan: { x: 0, y: 0 },
   zoom: 1,
@@ -28,11 +29,21 @@ const deviceTypes = [
   { type: 'cloud', label: 'Cloud', icon: '☁', color: '#d68cc7' }
 ];
 
+const linkTypes = [
+  { type: 'cable', label: 'Kabel', status: 'Kabelverbindung' },
+  { type: 'fiber', label: 'Glasfaser', status: 'Glasfaserverbindung' },
+  { type: 'wlan', label: 'WLAN', status: 'WLAN-Verbindung' },
+  { type: 'vpn', label: 'VPN', status: 'VPN-Tunnel' },
+  { type: 'internet', label: 'Internet', status: 'Internet-Uplink' },
+  { type: 'serial', label: 'Seriell', status: 'Serielle Verbindung' }
+];
+
 const byId = (id) => document.getElementById(id);
 const uid = (prefix) => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 const nodeById = (id) => state.nodes.find((node) => node.id === id);
 const linkById = (id) => state.links.find((link) => link.id === id);
 const deviceByType = (type) => deviceTypes.find((device) => device.type === type) || deviceTypes[0];
+const linkTypeById = (type) => linkTypes.find((linkType) => linkType.type === normalizeLinkType(type)) || linkTypes[0];
 const NODE_HEIGHT = 76;
 const NODE_MIN_WIDTH = 140;
 const NODE_MAX_WIDTH = 520;
@@ -41,6 +52,12 @@ const NODE_RIGHT_PADDING = 22;
 
 function nodeMeta(node) {
   return node.ip || node.role || deviceByType(node.type).label;
+}
+
+function normalizeLinkType(type) {
+  if (type === 'ethernet') return 'cable';
+  if (type === 'wireless') return 'wlan';
+  return type || 'cable';
 }
 
 function measureNodeText(value, fontSize, weight = 400) {
@@ -160,11 +177,17 @@ function addLink(from, to) {
     from,
     to,
     label: '',
-    type: 'ethernet'
+    type: state.connectionType
   });
   state.pendingLinkNode = null;
   select('link', state.links[state.links.length - 1].id);
-  setStatus('Verbindung erstellt');
+  setStatus(`${linkTypeById(state.connectionType).status} erstellt`);
+}
+
+function renderLinkTypeOptions(select) {
+  select.innerHTML = linkTypes.map((linkType) => `
+    <option value="${linkType.type}">${linkType.label}</option>
+  `).join('');
 }
 
 function renderPalette() {
@@ -178,6 +201,12 @@ function renderPalette() {
   toolGrid.querySelectorAll('button').forEach((button) => {
     button.addEventListener('click', () => addNode(button.dataset.type));
   });
+}
+
+function renderConnectionTypes() {
+  renderLinkTypeOptions(byId('connectionType'));
+  renderLinkTypeOptions(byId('linkType'));
+  byId('connectionType').value = state.connectionType;
 }
 
 function renderLinks() {
@@ -199,7 +228,7 @@ function renderLinks() {
     hit.setAttribute('class', 'link-hit');
     hit.setAttribute('d', pathData);
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    line.setAttribute('class', `link-line ${link.type}`);
+    line.setAttribute('class', `link-line ${normalizeLinkType(link.type)}`);
     line.setAttribute('d', pathData);
 
     group.append(hit, line);
@@ -275,7 +304,7 @@ function renderInspector() {
     empty.classList.add('hidden');
     linkForm.classList.remove('hidden');
     byId('linkLabel').value = link.label;
-    byId('linkType').value = link.type;
+    byId('linkType').value = normalizeLinkType(link.type);
   }
 }
 
@@ -429,9 +458,12 @@ function exportStyles() {
     .grid-bg { opacity: 0.72; }
     .link-hit { fill: none; stroke: transparent; stroke-width: 18; }
     .link-line { fill: none; stroke: #8ca7a0; stroke-width: 3; }
+    .link-line.cable { stroke: #8ca7a0; }
     .link-line.fiber { stroke: #e7c96b; stroke-dasharray: 10 5; }
-    .link-line.wireless { stroke: #89aef5; stroke-dasharray: 2 7; }
+    .link-line.wlan { stroke: #89aef5; stroke-dasharray: 2 7; stroke-linecap: round; }
     .link-line.vpn { stroke: #d68cc7; stroke-dasharray: 12 4 2 4; }
+    .link-line.internet { stroke: #7fd8b4; stroke-dasharray: 16 5; }
+    .link-line.serial { stroke: #ff9f7d; stroke-dasharray: 4 4; }
     .link.selected .link-line { stroke: #7fd8b4; stroke-width: 4; }
     .link-label {
       paint-order: stroke;
@@ -538,8 +570,12 @@ function bindEvents() {
   byId('connectMode').addEventListener('click', () => {
     state.mode = 'connect';
     state.pendingLinkNode = null;
-    setStatus('Erstes Gerät für Verbindung wählen');
+    setStatus(`${linkTypeById(state.connectionType).status}: erstes Gerät wählen`);
     render();
+  });
+  byId('connectionType').addEventListener('change', (event) => {
+    state.connectionType = event.target.value;
+    setStatus(`${linkTypeById(state.connectionType).status} ausgewählt`);
   });
   byId('deleteSelection').addEventListener('click', removeSelection);
   byId('undo').addEventListener('click', undo);
@@ -659,6 +695,7 @@ function seedProject() {
 }
 
 renderPalette();
+renderConnectionTypes();
 bindEvents();
 seedProject();
 render();

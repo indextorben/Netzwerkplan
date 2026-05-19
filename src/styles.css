@@ -279,19 +279,34 @@ h1 {
   stroke-width: 3;
 }
 
+.link-line.cable {
+  stroke: #8ca7a0;
+}
+
 .link-line.fiber {
   stroke: #e7c96b;
   stroke-dasharray: 10 5;
 }
 
-.link-line.wireless {
+.link-line.wlan {
   stroke: #89aef5;
   stroke-dasharray: 2 7;
+  stroke-linecap: round;
 }
 
 .link-line.vpn {
   stroke: #d68cc7;
   stroke-dasharray: 12 4 2 4;
+}
+
+.link-line.internet {
+  stroke: #7fd8b4;
+  stroke-dasharray: 16 5;
+}
+
+.link-line.serial {
+  stroke: #ff9f7d;
+  stroke-dasharray: 4 4;
 }
 
 .link.selected .link-line {
