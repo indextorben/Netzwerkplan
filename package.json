@@ -4,11 +4,12 @@
   "description": "Desktop-App zum Erstellen und Exportieren von Netzwerkplaenen.",
   "main": "src/main.js",
   "scripts": {
+    "clean:release": "node scripts/clean-release.js",
     "desktop": "electron .",
-    "build": "electron-builder",
-    "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac",
-    "build:linux": "electron-builder --linux"
+    "build": "npm run clean:release && electron-builder",
+    "build:win": "npm run clean:release && electron-builder --win",
+    "build:mac": "npm run clean:release && electron-builder --mac",
+    "build:linux": "npm run clean:release && electron-builder --linux"
   },
   "keywords": [
     "network",

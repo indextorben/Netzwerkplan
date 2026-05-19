@@ -25,6 +25,8 @@ npm run desktop
 npm run build
 ```
 
+Vor jedem Build wird der Ordner `release/` automatisch geleert, damit dort nur die aktuell gebauten Pakete liegen.
+
 Plattformspezifisch:
 
 ```bash
